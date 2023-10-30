@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var gameScore = 0
     @State private var randomValue = 0
     @State private var rotation = 0.0
+    @State private var gameOver = false
     var body: some View {
         NavigationView(){
             ZStack{
@@ -35,17 +36,20 @@ struct ContentView: View {
                             }
                         }
                         .buttonStyle(CustomButtonStyle())
-                        Button("Hold)")
+                        Button("Hold")
                         {
                             gameScore += turnScore
                             endTurn()
                             withAnimation(.easeInOut(duration: 1)) {
                                 rotation += 360
                             }
+                            if gameScore >= 100{
+                                gameOver = true
+                            }
                         }
                         .buttonStyle(CustomButtonStyle())
                     }
-                    CustomText(text: "Game Score: \(turnScore)")
+                    CustomText(text: "Game Score: \(gameScore)")
                     NavigationLink("How to Play", destination: InstructionsView())
                         .font (Font.custom("Marker Felt", size: 24))
                         .padding()
@@ -55,14 +59,24 @@ struct ContentView: View {
                 .padding()
             }
         }
+        .alert(isPresented: $gameOver, content: {
+            Alert(title: Text ("You won the game!"), dismissButton:
+            .destructive(Text("Play again"), action: {
+                withAnimation(Animation.default) {
+                    gameScore = 0
+                    gameOver = false
+                }
+            }))
+    })
     }
+        
     func endTurn()
     {
         turnScore = 0
         randomValue = 0
     }
     func chooseRandom(times : Int){
-        if times < 0{
+        if times > 0{
             DispatchQueue.main.asyncAfter(deadline: .now() + 1){
                 randomValue = Int.random(in: 1...6)
                 chooseRandom(times: times - 1)
